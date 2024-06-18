@@ -1,0 +1,114 @@
+plugins {
+	id 'java'
+	id 'application'
+	id 'org.openjfx.javafxplugin' version '0.1.0'
+	id 'org.checkerframework' version '0.6.39' apply false
+}
+
+apply plugin: 'org.checkerframework'
+
+wrapper {
+	gradleVersion '8.6'
+}
+
+group = 'de.bernd_michaely'
+version = '0.8'
+
+ext.versionJUnit = '5.9.2'
+ext.versionCheckerFramework = '3.43.0'
+
+final boolean enableResourcesAnnotationProcessor = true
+
+final boolean deactivateCheckerFramework = true
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+}
+
+javafx {
+	version = "21.0.3"
+	modules = [ 'javafx.controls' ]
+	configurations = [ 'implementation', 'testImplementation']
+}
+
+logger.lifecycle "Running Gradle $project.gradle.gradleVersion"
+logger.lifecycle "Java source level           : ${java.sourceCompatibility}"
+logger.lifecycle "Compile      -> Debug-Level : ${compileJava.options.debug}"
+logger.lifecycle "Test-Compile -> Debug-Level : ${compileTestJava.options.debug}"
+logger.lifecycle "Modularity enabled          : ${java.modularity.inferModulePath.get()}"
+logger.lifecycle "==> Root project »$name ($version)«"
+logger.lifecycle " -> Base dir is »${file('.')}«"
+logger.lifecycle " -> Using »JUnit $versionJUnit«"
+logger.lifecycle " -> Using »Checker Framework $versionCheckerFramework«"
+logger.lifecycle "    -> Checker Framework is ${deactivateCheckerFramework ? 'DEACTIVATED!' : 'active.'}"
+logger.lifecycle " -> Using »JavaFX ${javafx.version}«"
+logger.lifecycle " -> Included child projects : »${childProjects.keySet()}«"
+logger.lifecycle " -> Maven coordinates »${group}:${name}:${version}«"
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'de.bernd_michaely:common-resources:0.8'
+	
+	if (enableResourcesAnnotationProcessor) {
+		annotationProcessor 'de.bernd_michaely:common-resources-annproc:0.7'
+	}
+}
+
+application {
+	mainModule = 'de.bernd_michaely.common.resources.demo'
+	mainClass  = 'de.bernd_michaely.common.resources.sample.SampleResourceConsumingApp'
+}
+
+jar {
+	javafx {
+		modules = [ 'javafx.controls' ]
+	}
+	
+	manifest {
+		attributes ( 'Main-Class' : "${application.mainModule.get()}/${application.mainClass.get()}" )
+	}
+}
+
+run {
+	logger.lifecycle "-> run task modularity : ${modularity.inferModulePath.get()}"
+}
+
+testing {
+	suites {
+		test {
+			useJUnitJupiter(versionJUnit)
+		}
+	}
+}
+
+checkerFramework {
+  checkers += 'org.checkerframework.checker.nullness.NullnessChecker'
+  skipCheckerFramework = deactivateCheckerFramework
+	excludeTests = true
+}
+
+tasks.withType(JavaCompile) {
+	doFirst {
+		logger.lifecycle "=> Configuring task »$name«"
+	}
+	options.compilerArgs += '-Xlint:unchecked'
+	options.compilerArgs += '-Xlint:deprecation'
+	options.compilerArgs += '-Xdiags:verbose'
+	if (enableResourcesAnnotationProcessor) {
+		options.compilerArgs += '-AshowCheckedResourceKeys=true'
+		options.compilerArgs += '-AwarnOnlyMissingResources=false'
+	}
+	doLast {
+		if (enableResourcesAnnotationProcessor) {
+			logger.lifecycle "   -> Annotation Processor Path:"
+			for (path : options.getAnnotationProcessorPath().getFiles()) {
+				logger.lifecycle "      · »${path}«"
+			}
+		}
+		logger.lifecycle "   -> compiler args:"
+		logger.lifecycle "      ${options.compilerArgs}"
+	}
+}

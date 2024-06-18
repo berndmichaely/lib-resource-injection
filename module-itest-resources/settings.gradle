@@ -1,0 +1,2 @@
+rootProject.name = 'common-resources-itest-resources'
+includeBuild '../module-lib'

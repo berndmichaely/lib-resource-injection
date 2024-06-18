@@ -1,0 +1,3 @@
+rootProject.name = 'common-resources-demo'
+includeBuild '../module-lib'
+includeBuild '../module-lib-annproc'

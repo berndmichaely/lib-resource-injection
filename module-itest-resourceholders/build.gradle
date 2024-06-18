@@ -1,0 +1,45 @@
+plugins {
+	id 'java-library'
+}
+
+wrapper {
+	gradleVersion '8.6'
+}
+
+group = 'de.bernd_michaely'
+version = '0.7'
+
+ext.versionJUnit = '5.9.2'
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	//withJavadocJar()
+	//withSourcesJar()
+}
+
+logger.lifecycle "Running Gradle $project.gradle.gradleVersion"
+logger.lifecycle "Java source level           : ${java.sourceCompatibility}"
+logger.lifecycle "Compile      -> Debug-Level : ${compileJava.options.debug}"
+logger.lifecycle "Test-Compile -> Debug-Level : ${compileTestJava.options.debug}"
+logger.lifecycle "Modularity enabled          : ${java.modularity.inferModulePath.get()}"
+logger.lifecycle "==> Root project »$name ($version)«"
+logger.lifecycle " -> Base dir is »${file('.')}«"
+logger.lifecycle " -> Using »JUnit $versionJUnit«"
+logger.lifecycle " -> Maven coordinates »${group}:${name}:${version}«"
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'de.bernd_michaely:common-resources:0.8'
+}
+
+tasks.withType(JavaCompile) {
+	logger.lifecycle "=> Configuring task »$name«"
+	options.compilerArgs += '-Xlint:unchecked'
+	options.compilerArgs += '-Xlint:deprecation'
+	options.compilerArgs += '-Xdiags:verbose'
+	logger.lifecycle "   -> compiler args : ${options.compilerArgs}"
+}

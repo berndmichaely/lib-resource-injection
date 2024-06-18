@@ -1,0 +1,5 @@
+rootProject.name = 'common-resources-annproc'
+includeBuild '../module-lib'
+// needed for integration tests:
+includeBuild '../module-itest-resourceholders'
+includeBuild '../module-itest-resources'
